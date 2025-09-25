@@ -1,5 +1,6 @@
 sap.ui.define([
-    "sap/ui/core/mvc/Controller",
+    //"sap/ui/core/mvc/Controller",
+    "zov/controller/BaseController",
     "sap/m/MessageToast",
     "../model/formatter",
     "sap/ui/core/routing/History",
@@ -214,6 +215,29 @@ sap.ui.define([
                 return oItem;
             },
 
+            onDelete: function(){
+                var oOrdem = this.getOrderOData();
+                var that   = this;
+
+                if(oOrdem.OrdemId == 0){
+                    MessageToast.show("Só é possível deletar uma ordem que existe");
+                    return;
+                }
+
+                this.onDeleteOrder(oOrdem.OrdemId,function(sStatus){
+                    if(sStatus=="S"){
+                        // limpando dados da tela
+                        var oModel = new sap.ui.model.json.JSONModel();
+                        oModel.setDefaultBindingMode(sap.ui.model.BindingMode.TwoWay);
+                        oModel.setData(that.createEmptyOrderObject());
+                        that.getView().setModel(oModel);
+
+                        // redirecionando para a listagem
+                        sap.ui.core.UIComponent.getRouterFor(that).navTo("RouteOrdemList");
+                    }
+                });
+            },
+
             onSave: function(){
                 var that     = this;
                 var oView    = this.getView();
@@ -243,7 +267,8 @@ sap.ui.define([
                                 // bloqueando campos
                                 oView.byId("OVCab.DataCriacao").setEditable(false);
                                 oView.byId("OVCab.CriadoPor").setEditable(false);
-                                
+                                oView.byId("bt-delete").setVisible(true);
+
                                 MessageToast.show("Ordem cadastrada com sucesso");
                             }else{
                                 MessageToast.show("Erro ao salvar");    
@@ -290,7 +315,8 @@ sap.ui.define([
                 oView.byId("OVCab.DataCriacao").setEditable(true);
                 oView.byId("OVCab.CriadoPor").setEditable(true);
                 oView.byId("OVCab.ClienteId").setValueState("None");
-                
+                oView.byId("bt-delete").setVisible(false);
+
                 this.recalcOrder();
             },
 
@@ -311,6 +337,7 @@ sap.ui.define([
                 oView.byId("OVCab.DataCriacao").setEditable(false);
                 oView.byId("OVCab.CriadoPor").setEditable(false);
                 oView.byId("OVCab.ClienteId").setValueState("None");
+                oView.byId("bt-delete").setVisible(true);
                 
                 oView.setBusy(true);
 
@@ -340,60 +367,6 @@ sap.ui.define([
                         oView.setBusy(false);
                     }
                 });
-            },
-
-            parseInt: function(sValue){
-                if(sValue == "" || sValue == null || sValue == undefined){
-                    return 0;
-                }
-    
-                sValue = parseInt(sValue);
-                if(sValue == null || isNaN(sValue)){
-                    sValue = 0;
-                }
-                return sValue;
-            },
-    
-            parsePrice: function(sValue){
-                if(sValue == "" || sValue == null || sValue == undefined){
-                    return 0.00;
-                }
-    
-                if(typeof(sValue) == "number"){
-                    return sValue;
-                }
-
-                sValue = sValue.toString();
-
-                if(sValue.indexOf(",") === -1){
-                    return parseFloat(sValue);
-                }
-    
-                sValue = sValue.toString().replaceAll(/[^0-9\.\,]/g,'');
-                sValue = sValue.replace(/^0+/, '');
-                sValue = sValue.replace(".","");
-                sValue = sValue.replace(",",".");
-                return parseFloat(sValue);
-            },
-    
-            formatPrice: function(fPrice){
-                if(typeof(fPrice) != "number"){
-                    return "0,00";
-                }
-                var sPrice = fPrice.toFixed(2);
-                sPrice = sPrice.replace(".",",");
-                return sPrice;
-            },
-
-            onPageBack: function(){
-                var oHistory      = History.getInstance();
-                var sPreviousHash = oHistory.getPreviousHash();
-    
-                if (sPreviousHash !== undefined) {
-                    window.history.go(-1);
-                } else {
-                    UIComponent.getRouterFor(this).navTo("RouteOrdemList");
-                }
             }
         });
     });

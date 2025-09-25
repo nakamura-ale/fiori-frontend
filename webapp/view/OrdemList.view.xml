@@ -68,6 +68,9 @@
 			</fb:FilterBar>
 
 			<HBox justifyContent="End">
+				<Button text="Fornecer" press="onChangeStatus('L')" class="sapUiSmallMarginEnd sapUiSmallMarginTop"/>
+				<Button text="Faturar" press="onChangeStatus('F')" class="sapUiSmallMarginEnd sapUiSmallMarginTop"/>
+				<Button text="Cancelar" id="bt-cancel" press="onChangeStatus('C')" class="sapUiSmallMarginEnd sapUiSmallMarginTop"/>
 				<Button text="Nova Ordem" id="bt-new" press="onNew" class="sapUiSmallMarginEnd sapUiSmallMarginTop"/>
 			</HBox>
 
@@ -139,6 +142,7 @@
 						<t:template>
 							<HBox>
                                 <Button app:OrdemId="{table>OrdemId}" icon="sap-icon://edit" press="onEdit"/>
+                                <Button app:OrdemId="{table>OrdemId}" icon="sap-icon://delete" press="onDelete" class="sapUiTinyMarginBegin"/>
                             </HBox>
 						</t:template>
 					</t:Column>
