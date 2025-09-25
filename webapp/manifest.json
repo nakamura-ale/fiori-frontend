@@ -24,7 +24,11 @@
           "localUri": "localService/mainService/metadata.xml",
           "odataVersion": "2.0"
         }
-      }
+      }, 
+      "usuarios": {
+				"uri": "model/Usuarios.json",
+				"type": "JSON"
+			}
     }
   },
   "sap.ui": {
