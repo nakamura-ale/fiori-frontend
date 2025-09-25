@@ -1,47 +1,195 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/m/MessageToast"
-], (Controller,MessageToast) => {
-    "use strict";
+],
+    /**
+     * @param {typeof sap.ui.core.mvc.Controller} Controller
+     */
+    function (Controller,MessageToast) {
+        "use strict";
 
-    return Controller.extend("zov.controller.View1", {
-        onInit() {
-        },
-
+        return Controller.extend("zov.controller.View1", {
             onInit: function () {
-                //alert("onInit");
             },
 
-            onBeforeRendering: function(){
-                //alert("onBeforeRendering");
+            onCreateOVCab: function(){
+                var oData = {
+                    ClienteId: 7,
+                    TotalItens: '100.00',
+                    TotalFrete: '10.00',
+                    TotalOrdem: '110.00',
+                    Status: 'N'
+                };
+                this.create(oData);
             },
 
-            onAfterRendering: function(){
-                //alert("onAfterRendering");
+            onCreateDeepOVCab: function(){
+                var oData = {
+                    ClienteId: 10,
+                    TotalItens: '100.00',
+                    TotalFrete: '10.00',
+                    TotalOrdem: '110.00',
+                    Status: 'N',
+                    toOVItem: [
+                        {
+                          "ItemId": 10,
+                          "Material": "100",
+                          "Descricao": "Mouse",
+                          "Quantidade": 1,
+                          "PrecoUni": '1.00',
+                          "PrecoTot": '1.00'
+                        },
+                        {
+                            "ItemId": 20,
+                            "Material": "200",
+                            "Descricao": "Teclado",
+                            "Quantidade": 2,
+                            "PrecoUni": '10.00',
+                            "PrecoTot": '20.00'
+                          }
+                    ]
+                };
+                this.create(oData);
             },
 
-            onExit: function(){
-                //alert("onExit");
+            create: function(oData){
+                var that   = this;
+                var oModel = this.getOwnerComponent().getModel();
+
+                this.getView().setBusy(true);
+                oModel.create("/OVCabSet",oData,{
+                    success: function(oData2, oResponse){
+                        that.getView().setBusy(false);
+
+                        console.log(oData2);
+                        console.log(oResponse);
+                        if(oResponse.statusCode == 201){
+                            that.getView().byId("lastOrdemId").setValue(oData2.OrdemId);
+                            that.getView().byId("textarea1").setValue(JSON.stringify(oData2));
+
+                            MessageToast.show("Cadastrado com sucesso");
+                        }else{
+                            MessageToast.show("Erro no cadastro");    
+                        }
+                    },
+                    error: function(oError){
+                        that.getView().setBusy(false);
+                        
+                        console.log(oError);
+                        var oObj = JSON.parse(oError.responseText);
+                        MessageToast.show(oObj.error.message.value);
+                    }}
+                );
             },
 
-            onCalcular: function(){
-                var oView = this.getView();
-                var iB1 = parseInt(oView.byId("b1").getValue());
-                var iB2 = parseInt(oView.byId("b2").getValue());
-                var iB3 = parseInt(oView.byId("b3").getValue());
-                var iB4 = parseInt(oView.byId("b4").getValue());
-                var fResultado = 0;
-                
-                fResultado = ( iB1 + iB2 + iB3 + iB4) / 4;
+            onReadOVCab: function(){
+                var iOrdemId = this.getView().byId("lastOrdemId").getValue();
+                if(iOrdemId == 0){
+                    MessageToast.show("Crie um cabeçalho de ordem primeiro");
+                    return;
+                }
 
-                oView.byId("resultado").setValue(fResultado);
+                this.read(iOrdemId);
+            },
+            
+            read: function(iOrdemId){
+                var that   = this;
+                var oModel = this.getOwnerComponent().getModel();
 
-                MessageToast.show("Resultado = "+fResultado);
+                this.getView().setBusy(true);
+                oModel.read("/OVCabSet("+iOrdemId+")",{
+                    success: function(oData2, oResponse){
+                        that.getView().setBusy(false);
 
-                // MessageToast
-                // sap.m.MessageToast
-                
-                //oView.destroy();
+                        that.getView().byId("textarea1").setValue(JSON.stringify(oData2));
+
+                        console.log(oData2);
+                        console.log(oResponse);
+                        MessageToast.show("Leitura realizada");
+                    },
+                    error: function(oError){
+                        that.getView().setBusy(false);
+
+                        console.log(oError);
+                        var oObj = JSON.parse(oError.responseText);
+                        MessageToast.show(oObj.error.message.value);
+                    }
+                });
+            },
+
+            onUpdateOVCab: function(){
+                var iOrdemId = this.getView().byId("lastOrdemId").getValue();
+                if(iOrdemId == 0){
+                    MessageToast.show("Crie um cabeçalho de ordem primeiro");
+                    return;
+                }
+
+                var oData = {
+                    ClienteId: 2,
+                    TotalItens: '150.00',
+                    TotalFrete: '10.00',
+                    TotalOrdem: '160.00',
+                    Status: 'C'
+                };
+                this.update(iOrdemId,oData);
+            },
+            
+            update: function(iOrdemId,oData){
+                var that   = this;
+                var oModel = this.getOwnerComponent().getModel();
+
+                this.getView().setBusy(true);
+                oModel.update("/OVCabSet("+iOrdemId+")",oData,{
+                    success: function(oData2, oResponse){
+                        that.getView().setBusy(false);
+                        console.log(oData2);
+                        console.log(oResponse);
+                        if(oResponse.statusCode == 204){
+                            MessageToast.show("Atualizado com sucesso");
+                        }else{
+                            MessageToast.show("Erro em atualizar");
+                        }
+                    },
+                    error: function(oError){
+                        that.getView().setBusy(false);
+
+                        console.log(oError);
+                        var oObj = JSON.parse(oError.responseText);
+                        MessageToast.show(oObj.error.message.value);
+                    }}
+                );
+            },
+
+            onDeleteOVCab: function(){
+                var iOrdemId = this.getView().byId("lastOrdemId").getValue();
+                this.delete(iOrdemId);
+            },
+            
+            delete: function(iOrdemId){
+                var that   = this;
+                var oModel = this.getOwnerComponent().getModel();
+
+                this.getView().setBusy(true);
+                oModel.remove("/OVCabSet("+iOrdemId+")",{
+                    success: function(oData2, oResponse){
+                        that.getView().setBusy(false);
+
+                        console.log(oData2);
+                        console.log(oResponse);
+                        if(oResponse.statusCode == 204){
+                            MessageToast.show("Deletado com sucesso");
+                        }else{
+                            MessageToast.show("Erro em deletar");
+                        }
+                    },
+                    error: function(oError){
+                        that.getView().setBusy(false);
+                        console.log(oError);
+
+                        var oObj = JSON.parse(oError.responseText);
+                        MessageToast.show(oObj.error.message.value);
+                    }}
+                );
             }
+        });
     });
-});
